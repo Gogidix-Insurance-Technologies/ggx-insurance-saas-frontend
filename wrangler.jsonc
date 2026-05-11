@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gogidix-insurance-saas-frontend",
+  "compatibility_date": "2026-05-11",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "admin-console"
+  },
+  "compatibility_flags": [
+    "nodejs_compat"
+  ]
+}
