@@ -1,6 +1,5 @@
 import { Card } from '../components/shared/Card'
-import { Badge } from '../components/shared/Badge'
-import { HeadphonesIcon, MessageSquare, Mail, Phone, FileText, Clock, Send } from 'lucide-react'
+import { MessageSquare, Mail, Phone, Send } from 'lucide-react'
 import { useState } from 'react'
 
 const faqs = [

@@ -1,5 +1,5 @@
 import { Card, Metric, Badge } from '../components/shared/Card'
-import { MessageSquare, Ticket, Clock, Users, CheckCircle, AlertTriangle } from 'lucide-react'
+import { MessageSquare, Ticket, Clock, Users, CheckCircle } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const ticketTrend = [

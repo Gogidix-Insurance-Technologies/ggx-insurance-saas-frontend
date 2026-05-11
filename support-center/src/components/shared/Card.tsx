@@ -12,7 +12,8 @@ export function Metric({ icon: Icon, label, value }: { icon: LucideIcon; label: 
   </div>
 }
 
-export function Badge({ variant = 'primary', children }: { variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info'; children: React.ReactNode }) {
-  const c: Record<string, string> = { primary: 'bg-green-50 text-green-700', success: 'bg-emerald-50 text-emerald-700', warning: 'bg-yellow-50 text-yellow-700', danger: 'bg-red-50 text-red-700', info: 'bg-blue-50 text-blue-700' }
-  return <span className={`inline-flex items-center rounded-full text-xs font-medium px-2.5 py-1 ${c[variant]}`}>{children}</span>
+export function Badge({ variant = 'primary', size = 'md', children }: { variant?: 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'accent'; size?: 'sm' | 'md'; children: React.ReactNode }) {
+  const c: Record<string, string> = { primary: 'bg-green-50 text-green-700', success: 'bg-emerald-50 text-emerald-700', warning: 'bg-yellow-50 text-yellow-700', danger: 'bg-red-50 text-red-700', info: 'bg-blue-50 text-blue-700', accent: 'bg-purple-50 text-purple-700' }
+  const s = size === 'sm' ? 'text-xs px-1.5 py-0.5' : 'text-xs px-2.5 py-1'
+  return <span className={`inline-flex items-center rounded-full font-medium ${s} ${c[variant]}`}>{children}</span>
 }

@@ -1,4 +1,4 @@
-import { Card, Badge } from '../components/shared/Card'
+import { Card } from '../components/shared/Card'
 import { DollarSign, Download } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 

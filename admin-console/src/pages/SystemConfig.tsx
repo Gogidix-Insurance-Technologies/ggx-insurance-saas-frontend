@@ -1,6 +1,5 @@
 import { Card } from '../components/shared/Card'
-import { Badge } from '../components/shared/Badge'
-import { Settings, Database, Mail, Shield, Globe, Bell, Save } from 'lucide-react'
+import { Database, Mail, Shield, Globe, Bell, Save } from 'lucide-react'
 
 const configSections = [
   { title: 'General Settings', icon: Globe, items: [

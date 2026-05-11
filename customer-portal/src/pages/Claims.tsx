@@ -57,7 +57,7 @@ export default function Claims() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-slate-900">{c.id}</h3>
-                      <Badge variant={config.variant}>{c.status}</Badge>
+                      <Badge variant={variant}>{c.status}</Badge>
                     </div>
                     <p className="text-sm text-slate-600 mt-0.5">{c.desc}</p>
                     <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">

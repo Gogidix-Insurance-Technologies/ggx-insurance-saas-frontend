@@ -1,6 +1,6 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { CreditCard, Download, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { CreditCard, Download } from 'lucide-react'
 
 const payments = [
   { id: 'PAY-9845', policy: 'POL-2847', desc: 'Auto Insurance Premium', amount: '₦45,000', method: 'Card ****4521', date: '15 Aug 2025', status: 'paid' },
