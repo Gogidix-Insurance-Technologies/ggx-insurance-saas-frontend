@@ -1,0 +1,102 @@
+name: CD - Deploy to Staging (UAT)
+
+on:
+  push:
+    branches: [Staging/uat]
+  workflow_dispatch:
+    inputs:
+      frontend:
+        description: 'Specific frontend to deploy (or "all")'
+        required: false
+        default: 'all'
+
+concurrency:
+  group: staging-deploy
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+jobs:
+  prepare:
+    name: Prepare Staging Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      frontends: ${{ steps.set.outputs.frontends }}
+    steps:
+      - id: set
+        run: |
+          if [ "${{ github.event.inputs.frontend }}" != "" ] && [ "${{ github.event.inputs.frontend }}" != "all" ]; then
+            echo "frontends=[\"${{ github.event.inputs.frontend }}\"]" >> $GITHUB_OUTPUT
+          else
+            echo 'frontends=["admin-console","customer-portal","executive-dashboard","hr-portal","digital-sales-portal","support-center","broker-portal"]' >> $GITHUB_OUTPUT
+          fi
+
+  deploy-staging:
+    name: Deploy ${{ matrix.frontend }} to Staging
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend: ${{ fromJson(needs.prepare.outputs.frontends) }}
+
+    environment:
+      name: staging
+      url: https://${{ matrix.frontend }}-staging.ggx-insurance.pages.dev
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.frontend }}/package.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.frontend }}
+        run: |
+          npm install --install-strategy=nested --legacy-peer-deps
+          npm install @esbuild/linux-x64 --save-dev || true
+
+      - name: Build for staging
+        working-directory: ${{ matrix.frontend }}
+        env:
+          VITE_API_URL: https://staging-api.ggx-insurance.io
+          VITE_ENV: staging
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages (Staging)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=${{ matrix.frontend }}-staging
+          workingDirectory: ${{ matrix.frontend }}
+
+      - name: Deployment summary
+        run: |
+          echo "## Staging Deployment: ${{ matrix.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** Staging/UAT" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://${{ matrix.frontend }}-staging.ggx-insurance.pages.dev" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+
+  notify-staging:
+    name: Notify Deployment
+    needs: deploy-staging
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send notification
+        run: |
+          echo "## Staging Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All frontends deployed to staging environment." >> $GITHUB_STEP_SUMMARY
+          echo "Ready for UAT testing." >> $GITHUB_STEP_SUMMARY

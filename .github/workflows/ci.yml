@@ -1,0 +1,192 @@
+name: CI - Build & Quality Check
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev, Staging/uat, production]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  ORG_NAME: Gogidix-Insurance-Technologies
+
+jobs:
+  detect-changes:
+    name: Detect Changed Frontends
+    runs-on: ubuntu-latest
+    outputs:
+      admin-console: ${{ steps.filter.outputs.admin-console }}
+      customer-portal: ${{ steps.filter.outputs.customer-portal }}
+      executive-dashboard: ${{ steps.filter.outputs.executive-dashboard }}
+      hr-portal: ${{ steps.filter.outputs.hr-portal }}
+      digital-sales-portal: ${{ steps.filter.outputs.digital-sales-portal }}
+      support-center: ${{ steps.filter.outputs.support-center }}
+      broker-portal: ${{ steps.filter.outputs.broker-portal }}
+      should_run: ${{ steps.filter.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            admin-console:
+              - 'admin-console/**'
+            customer-portal:
+              - 'customer-portal/**'
+            executive-dashboard:
+              - 'executive-dashboard/**'
+            hr-portal:
+              - 'hr-portal/**'
+            digital-sales-portal:
+              - 'digital-sales-portal/**'
+            support-center:
+              - 'support-center/**'
+            broker-portal:
+              - 'broker-portal/**'
+            changed:
+              - 'admin-console/**'
+              - 'customer-portal/**'
+              - 'executive-dashboard/**'
+              - 'hr-portal/**'
+              - 'digital-sales-portal/**'
+              - 'support-center/**'
+              - 'broker-portal/**'
+
+  build-frontend:
+    name: Build ${{ matrix.frontend.name }}
+    needs: detect-changes
+    if: needs.detect-changes.outputs[matrix.frontend.key] == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend:
+          - name: Admin Console
+            key: admin-console
+            path: admin-console
+            port: 3001
+          - name: Customer Portal
+            key: customer-portal
+            path: customer-portal
+            port: 3002
+          - name: Executive Dashboard
+            key: executive-dashboard
+            path: executive-dashboard
+            port: 3003
+          - name: HR Portal
+            key: hr-portal
+            path: hr-portal
+            port: 3010
+          - name: Digital & Sales Portal
+            key: digital-sales-portal
+            path: digital-sales-portal
+            port: 3011
+          - name: Support Center
+            key: support-center
+            path: support-center
+            port: 3013
+          - name: Broker Portal
+            key: broker-portal
+            path: broker-portal
+            port: 3004
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.frontend.path }}/package.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.frontend.path }}
+        run: |
+          npm install --install-strategy=nested --legacy-peer-deps
+          npm install @esbuild/linux-x64 --save-dev || true
+
+      - name: TypeScript type check
+        working-directory: ${{ matrix.frontend.path }}
+        run: npx tsc --noEmit
+
+      - name: Build production bundle
+        working-directory: ${{ matrix.frontend.path }}
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.frontend.path }}-dist
+          path: ${{ matrix.frontend.path }}/dist
+          retention-days: 7
+
+      - name: Analyze bundle size
+        working-directory: ${{ matrix.frontend.path }}
+        run: |
+          echo "## ${{ matrix.frontend.name }} Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d "dist" ]; then
+            SIZE=$(du -sh dist | cut -f1)
+            FILES=$(find dist -type f | wc -l)
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Bundle Size | ${SIZE} |" >> $GITHUB_STEP_SUMMARY
+            echo "| File Count | ${FILES} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Port | ${{ matrix.frontend.port }} |" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  security-scan:
+    name: Security Audit
+    needs: detect-changes
+    if: needs.detect-changes.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Run npm audit (all frontends)
+        run: |
+          echo "## Security Audit Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          for dir in admin-console customer-portal executive-dashboard hr-portal digital-sales-portal support-center broker-portal; do
+            if [ -d "$dir" ]; then
+              echo "### $dir" >> $GITHUB_STEP_SUMMARY
+              cd $dir
+              npm audit --audit-level=high --production 2>&1 | tail -5 >> $GITHUB_STEP_SUMMARY || true
+              cd ..
+              echo "" >> $GITHUB_STEP_SUMMARY
+            fi
+          done
+
+  ci-status:
+    name: CI Pipeline Status
+    needs: [detect-changes, build-frontend, security-scan]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check pipeline result
+        run: |
+          echo "## CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Triggered by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.build-frontend.result }}" == "failure" ]; then
+            echo "::error::Build failed for one or more frontends"
+            exit 1
+          fi
