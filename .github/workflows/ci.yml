@@ -16,51 +16,8 @@ env:
   ORG_NAME: Gogidix-Insurance-Technologies
 
 jobs:
-  detect-changes:
-    name: Detect Changed Frontends
-    runs-on: ubuntu-latest
-    outputs:
-      admin-console: ${{ steps.filter.outputs.admin-console }}
-      customer-portal: ${{ steps.filter.outputs.customer-portal }}
-      executive-dashboard: ${{ steps.filter.outputs.executive-dashboard }}
-      hr-portal: ${{ steps.filter.outputs.hr-portal }}
-      digital-sales-portal: ${{ steps.filter.outputs.digital-sales-portal }}
-      support-center: ${{ steps.filter.outputs.support-center }}
-      broker-portal: ${{ steps.filter.outputs.broker-portal }}
-      should_run: ${{ steps.filter.outputs.changed }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v2
-        id: filter
-        with:
-          filters: |
-            admin-console:
-              - 'admin-console/**'
-            customer-portal:
-              - 'customer-portal/**'
-            executive-dashboard:
-              - 'executive-dashboard/**'
-            hr-portal:
-              - 'hr-portal/**'
-            digital-sales-portal:
-              - 'digital-sales-portal/**'
-            support-center:
-              - 'support-center/**'
-            broker-portal:
-              - 'broker-portal/**'
-            changed:
-              - 'admin-console/**'
-              - 'customer-portal/**'
-              - 'executive-dashboard/**'
-              - 'hr-portal/**'
-              - 'digital-sales-portal/**'
-              - 'support-center/**'
-              - 'broker-portal/**'
-
   build-frontend:
     name: Build ${{ matrix.frontend.name }}
-    needs: detect-changes
-    if: needs.detect-changes.outputs[matrix.frontend.key] == 'true'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -144,8 +101,6 @@ jobs:
 
   security-scan:
     name: Security Audit
-    needs: detect-changes
-    if: needs.detect-changes.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -169,7 +124,7 @@ jobs:
 
   ci-status:
     name: CI Pipeline Status
-    needs: [detect-changes, build-frontend, security-scan]
+    needs: [build-frontend, security-scan]
     if: always()
     runs-on: ubuntu-latest
     steps:
