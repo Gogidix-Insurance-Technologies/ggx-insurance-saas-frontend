@@ -1,0 +1,150 @@
+name: Hotfix - Emergency Deploy
+
+on:
+  push:
+    branches: [hotfix]
+  workflow_dispatch:
+    inputs:
+      frontend:
+        description: 'Which frontend needs the hotfix?'
+        required: true
+        default: 'all'
+      severity:
+        description: 'Severity level'
+        required: true
+        default: 'critical'
+        type: choice
+        options:
+          - critical
+          - high
+          - medium
+
+concurrency:
+  group: hotfix-deploy
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  hotfix-build:
+    name: Hotfix Build - ${{ matrix.frontend }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend: ${{ github.event.inputs.frontend == 'all' && fromJson('["admin-console","customer-portal","executive-dashboard","hr-portal","digital-sales-portal","support-center","broker-portal"]') || fromJson(format('["{0}"]', github.event.inputs.frontend)) }}
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.frontend }}/package.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.frontend }}
+        run: |
+          npm install --install-strategy=nested --legacy-peer-deps
+          npm install @esbuild/linux-x64 --save-dev || true
+
+      - name: Type check
+        working-directory: ${{ matrix.frontend }}
+        run: npx tsc --noEmit
+
+      - name: Build production bundle
+        working-directory: ${{ matrix.frontend }}
+        env:
+          VITE_API_URL: https://api.ggx-insurance.com
+          VITE_ENV: production
+        run: npm run build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.frontend }}-hotfix
+          path: ${{ matrix.frontend }}/dist
+          retention-days: 30
+
+  hotfix-deploy-staging:
+    name: Deploy Hotfix to Staging
+    needs: hotfix-build
+    runs-on: ubuntu-latest
+    environment: staging
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend: ${{ github.event.inputs.frontend == 'all' && fromJson('["admin-console","customer-portal","executive-dashboard","hr-portal","digital-sales-portal","support-center","broker-portal"]') || fromJson(format('["{0}"]', github.event.inputs.frontend)) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.frontend }}-hotfix
+          path: ${{ matrix.frontend }}/dist
+
+      - name: Deploy to staging for validation
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ matrix.frontend }}/dist --project-name=${{ matrix.frontend }}-staging
+
+  hotfix-deploy-production:
+    name: Deploy Hotfix to Production
+    needs: hotfix-deploy-staging
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend: ${{ github.event.inputs.frontend == 'all' && fromJson('["admin-console","customer-portal","executive-dashboard","hr-portal","digital-sales-portal","support-center","broker-portal"]') || fromJson(format('["{0}"]', github.event.inputs.frontend)) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.frontend }}-hotfix
+          path: ${{ matrix.frontend }}/dist
+
+      - name: Deploy to production
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ matrix.frontend }}/dist --project-name=${{ matrix.frontend }}-prod
+
+      - name: Hotfix summary
+        run: |
+          echo "## 🔥 Hotfix Deployed to Production" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ matrix.frontend }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Severity | ${{ github.event.inputs.severity || 'critical' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deployed by | @${{ github.actor }} |" >> $GITHUB_STEP_SUMMARY
+
+  merge-back:
+    name: Merge Hotfix Back to Dev
+    needs: hotfix-deploy-production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge hotfix into dev
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git merge origin/hotfix --no-edit
+          git push origin dev
+
+      - name: Merge hotfix into production
+        run: |
+          git checkout -b production origin/production
+          git merge origin/hotfix --no-edit
+          git push origin production
