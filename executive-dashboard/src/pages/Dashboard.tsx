@@ -1,7 +1,7 @@
 import { Card, MetricCard } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
 import { DollarSign, Users, FileText, TrendingUp, ArrowUpRight, ArrowDownRight } from 'lucide-react'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const revenueData = [
   { month: 'Jan', revenue: 24, claims: 18, policies: 12 }, { month: 'Feb', revenue: 28, claims: 22, policies: 14 },

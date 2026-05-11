@@ -1,7 +1,7 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
 import { DollarSign, TrendingUp, ArrowUpRight } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const monthlyFinancials = [
   { month: 'Jan', gwp: 6.8, claims: 4.2, profit: 1.8 }, { month: 'Feb', gwp: 7.2, claims: 4.5, profit: 2.0 },

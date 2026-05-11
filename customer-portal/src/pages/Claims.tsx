@@ -1,6 +1,6 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { AlertCircle, Plus, Clock, CheckCircle, XCircle, Upload } from 'lucide-react'
+import { AlertCircle, Plus, Upload } from 'lucide-react'
 
 const claims = [
   { id: 'CLM-4521', policy: 'POL-2847', type: 'Auto', desc: 'Windscreen replacement due to road debris', amount: '₦85,000', status: 'processing', date: '28 Jul 2026', documents: 3 },
@@ -11,9 +11,6 @@ const claims = [
 
 const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'info'> = {
   processing: 'warning', approved: 'success', paid: 'info', rejected: 'danger',
-}
-const statusIcon: Record<string, typeof Clock> = {
-  processing: Clock, approved: CheckCircle, paid: CheckCircle, rejected: XCircle,
 }
 
 export default function Claims() {
@@ -44,9 +41,7 @@ export default function Claims() {
       </div>
 
       <div className="space-y-4">
-        {claims.map(c => {
-          const Icon = statusIcon[c.status]
-          return (
+        {claims.map(c => (
             <Card key={c.id}>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">
