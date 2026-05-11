@@ -1,6 +1,6 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { GitBranch, Plus, Play, Pause, Clock, CheckCircle, AlertTriangle } from 'lucide-react'
+import { GitBranch, Plus, Play, CheckCircle, AlertTriangle } from 'lucide-react'
 
 const workflows = [
   { id: 1, name: 'New Policy Issuance', trigger: 'Customer Application', steps: 8, status: 'active', executions: 12450, avgTime: '4.2 min' },

@@ -1,6 +1,6 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { Package, Plus, Edit, ToggleLeft, ToggleRight } from 'lucide-react'
+import { Package, Plus, Edit } from 'lucide-react'
 
 const products = [
   { id: 1, name: 'Auto Insurance', code: 'AUTO', tenants: 142, policies: 85000, status: 'active', variants: ['Comprehensive', 'Third Party', 'Fire & Theft'] },

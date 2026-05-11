@@ -1,6 +1,6 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { Bell, Plus, Mail, MessageSquare, Smartphone, Send, Clock } from 'lucide-react'
+import { Bell, Plus, Mail, Smartphone } from 'lucide-react'
 
 const notifications = [
   { id: 1, title: 'New Tenant Onboarding', message: 'SafeDrive Nigeria has completed onboarding', channel: 'email', recipients: 3, status: 'sent', time: '5 min ago' },

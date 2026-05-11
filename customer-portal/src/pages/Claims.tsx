@@ -9,11 +9,11 @@ const claims = [
   { id: 'CLM-3890', policy: 'POL-2847', type: 'Auto', desc: 'Minor fender bender - rear bumper', amount: '₦120,000', status: 'rejected', date: '18 Apr 2026', documents: 4 },
 ]
 
-const statusConfig: Record<string, { variant: 'success' | 'warning' | 'danger' | 'info'; icon: typeof Clock }> = {
-  processing: { variant: 'warning', icon: Clock },
-  approved: { variant: 'success', icon: CheckCircle },
-  paid: { variant: 'info', icon: CheckCircle },
-  rejected: { variant: 'danger', icon: XCircle },
+const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'info'> = {
+  processing: 'warning', approved: 'success', paid: 'info', rejected: 'danger',
+}
+const statusIcon: Record<string, typeof Clock> = {
+  processing: Clock, approved: CheckCircle, paid: CheckCircle, rejected: XCircle,
 }
 
 export default function Claims() {
@@ -45,8 +45,7 @@ export default function Claims() {
 
       <div className="space-y-4">
         {claims.map(c => {
-          const config = statusConfig[c.status]
-          const Icon = config.icon
+          const Icon = statusIcon[c.status]
           return (
             <Card key={c.id}>
               <div className="flex items-start justify-between">
@@ -57,7 +56,7 @@ export default function Claims() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-semibold text-slate-900">{c.id}</h3>
-                      <Badge variant={variant}>{c.status}</Badge>
+                      <Badge variant={statusVariant[c.status]}>{c.status}</Badge>
                     </div>
                     <p className="text-sm text-slate-600 mt-0.5">{c.desc}</p>
                     <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">

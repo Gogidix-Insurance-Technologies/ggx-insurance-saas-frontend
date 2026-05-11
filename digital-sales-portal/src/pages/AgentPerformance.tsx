@@ -1,5 +1,5 @@
 import { Card, Badge } from '../components/shared/Card'
-import { Award, TrendingUp, Target, Phone } from 'lucide-react'
+import { Award } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const agents = [

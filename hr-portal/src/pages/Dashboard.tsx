@@ -1,5 +1,5 @@
 import { Card, Metric, Badge } from '../components/shared/Card'
-import { Users, UserPlus, CalendarDays, DollarSign, Award, TrendingUp } from 'lucide-react'
+import { Users, UserPlus, CalendarDays, DollarSign } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const deptData = [

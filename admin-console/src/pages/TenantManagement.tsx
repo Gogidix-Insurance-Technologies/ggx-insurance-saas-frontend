@@ -1,6 +1,6 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { Plus, Search, Building2, Globe, Settings, Users, ChevronRight } from 'lucide-react'
+import { Plus, Search, Building2, Globe, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 
 const tenants = [

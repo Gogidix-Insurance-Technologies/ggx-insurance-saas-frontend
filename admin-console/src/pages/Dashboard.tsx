@@ -1,12 +1,12 @@
 import { Card, MetricCard } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
 import {
-  Users, Building2, FileText, DollarSign, TrendingUp, Activity,
-  AlertTriangle, CheckCircle, Clock, Shield
+  Users, Building2, FileText, DollarSign, Activity,
+  AlertTriangle, CheckCircle
 } from 'lucide-react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  AreaChart, Area, PieChart, Pie, Cell
+  PieChart, Pie, Cell
 } from 'recharts'
 
 const revenueData = [

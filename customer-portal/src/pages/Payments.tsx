@@ -1,6 +1,5 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { CreditCard, Download } from 'lucide-react'
 
 const payments = [
   { id: 'PAY-9845', policy: 'POL-2847', desc: 'Auto Insurance Premium', amount: '₦45,000', method: 'Card ****4521', date: '15 Aug 2025', status: 'paid' },
@@ -34,7 +33,7 @@ export default function Payments() {
                 </div>
                 <div className="flex items-center justify-between mt-1">
                   <p className="text-xs text-slate-500">Due {p.dueDate}</p>
-                  <Badge variant={p.daysLeft < 45 ? 'warning' : 'success'} size="sm">{p.daysLeft} days</Badge>
+                  <Badge variant={p.daysLeft < 45 ? 'warning' : 'success'}>{p.daysLeft} days</Badge>
                 </div>
               </div>
             ))}

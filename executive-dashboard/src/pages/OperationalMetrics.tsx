@@ -1,5 +1,5 @@
 import { Card } from '../components/shared/Card'
-import { Badge } from '../components/shared/Badge' from 'lucide-react'
+import { Badge } from '../components/shared/Badge'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
 const systemMetrics = [

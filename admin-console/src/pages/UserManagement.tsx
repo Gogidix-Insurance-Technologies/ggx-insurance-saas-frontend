@@ -1,6 +1,6 @@
 import { Card } from '../components/shared/Card'
 import { Badge } from '../components/shared/Badge'
-import { Search, Filter, Plus, MoreVertical, Shield, Mail, Edit, Trash2 } from 'lucide-react'
+import { Search, Filter, Plus, Mail, Edit, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 const users = [
