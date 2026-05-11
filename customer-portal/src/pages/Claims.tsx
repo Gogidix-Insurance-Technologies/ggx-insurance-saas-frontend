@@ -71,8 +71,7 @@ export default function Claims() {
                 </div>
               </div>
             </Card>
-          )
-        })}
+        )})}
       </div>
     </div>
   )
