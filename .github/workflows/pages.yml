@@ -1,0 +1,120 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build admin-console
+        working-directory: admin-console
+        run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
+
+      - name: Build customer-portal
+        working-directory: customer-portal
+        run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
+
+      - name: Build executive-dashboard
+        working-directory: executive-dashboard
+        run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
+
+      - name: Build broker-portal
+        working-directory: broker-portal
+        run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
+
+      - name: Build hr-portal
+        working-directory: hr-portal
+        run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
+
+      - name: Build digital-sales-portal
+        working-directory: digital-sales-portal
+        run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
+
+      - name: Build support-center
+        working-directory: support-center
+        run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
+
+      - name: Assemble pages
+        run: |
+          mkdir -p _site
+          cp -r admin-console/dist _site/admin-console
+          cp -r customer-portal/dist _site/customer-portal
+          cp -r executive-dashboard/dist _site/executive-dashboard
+          cp -r broker-portal/dist _site/broker-portal
+          cp -r hr-portal/dist _site/hr-portal
+          cp -r digital-sales-portal/dist _site/digital-sales-portal
+          cp -r support-center/dist _site/support-center
+
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>GGX Insurance SaaS</title>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+              .container { max-width: 800px; padding: 2rem; text-align: center; }
+              h1 { font-size: 2rem; margin-bottom: 0.5rem; background: linear-gradient(135deg, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+              p { color: #94a3b8; margin-bottom: 2rem; }
+              .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+              a { display: block; padding: 1.25rem; background: #1e293b; border: 1px solid #334155; border-radius: 0.75rem; color: #e2e8f0; text-decoration: none; transition: all 0.2s; }
+              a:hover { background: #334155; border-color: #3b82f6; transform: translateY(-2px); }
+              .portal-name { font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem; }
+              .portal-desc { font-size: 0.75rem; color: #64748b; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>GGX Insurance SaaS</h1>
+              <p>Frontend Portals — Development Preview</p>
+              <div class="grid">
+                <a href="./admin-console/"><div class="portal-name">Admin Console</div><div class="portal-desc">System administration</div></a>
+                <a href="./customer-portal/"><div class="portal-name">Customer Portal</div><div class="portal-desc">Policyholder self-service</div></a>
+                <a href="./executive-dashboard/"><div class="portal-name">Executive Dashboard</div><div class="portal-desc">Analytics & reporting</div></a>
+                <a href="./broker-portal/"><div class="portal-name">Broker Portal</div><div class="portal-desc">Insurance brokers</div></a>
+                <a href="./hr-portal/"><div class="portal-name">HR Portal</div><div class="portal-desc">Human resources</div></a>
+                <a href="./digital-sales-portal/"><div class="portal-name">Digital Sales</div><div class="portal-desc">Campaigns & leads</div></a>
+                <a href="./support-center/"><div class="portal-name">Support Center</div><div class="portal-desc">Customer support</div></a>
+              </div>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://gogidix-insurance-technologies.github.io/ggx-insurance-saas-frontend/
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
