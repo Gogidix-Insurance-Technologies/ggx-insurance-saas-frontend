@@ -1,0 +1,45 @@
+name: Deploy to Cloudflare
+
+on:
+  workflow_dispatch:
+    inputs:
+      cf_account_id:
+        description: Cloudflare Account ID
+        required: true
+      cf_api_token:
+        description: Cloudflare API Token
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy - ${{ matrix.frontend }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        frontend: ["admin-console","customer-portal","executive-dashboard","hr-portal","digital-sales-portal","support-center","broker-portal"]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install shared-ui
+        working-directory: shared-ui
+        run: npm install --install-strategy=nested --legacy-peer-deps
+
+      - name: Install and build
+        working-directory: ${{ matrix.frontend }}
+        run: |
+          npm install --install-strategy=nested --legacy-peer-deps
+          npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ github.event.inputs.cf_api_token }}
+          accountId: ${{ github.event.inputs.cf_account_id }}
+          command: pages deploy dist --project-name=${{ matrix.frontend }}-dev
