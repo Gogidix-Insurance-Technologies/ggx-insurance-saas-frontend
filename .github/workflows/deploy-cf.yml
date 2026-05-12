@@ -18,6 +18,8 @@ jobs:
       fail-fast: false
       matrix:
         frontend: ["admin-console","customer-portal","executive-dashboard","hr-portal","digital-sales-portal","support-center","broker-portal"]
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,8 +36,38 @@ jobs:
           npm run build
 
       - name: Deploy to Cloudflare Pages
+        id: deploy
+        working-directory: ${{ matrix.frontend }}
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ github.event.inputs.cf_api_token }}
           accountId: ${{ github.event.inputs.cf_account_id }}
           command: pages deploy dist --project-name=${{ matrix.frontend }}-dev
+
+      - name: Deploy summary
+        working-directory: ${{ matrix.frontend }}
+        run: |
+          echo "## Deploy: ${{ matrix.frontend }}" >> $GITHUB_STEP_SUMMARY
+          echo "| Detail | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Project | ${{ matrix.frontend }}-dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| URL | https://${{ matrix.frontend }}-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
+
+  summary:
+    name: Deploy Summary
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "## GGX Insurance SaaS - Cloudflare Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Portal | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-----|" >> $GITHUB_STEP_SUMMARY
+          echo "| Admin Console | https://admin-console-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Customer Portal | https://customer-portal-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Executive Dashboard | https://executive-dashboard-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| HR Portal | https://hr-portal-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Digital Sales | https://digital-sales-portal-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Support Center | https://support-center-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
+          echo "| Broker Portal | https://broker-portal-dev.pages.dev |" >> $GITHUB_STEP_SUMMARY
