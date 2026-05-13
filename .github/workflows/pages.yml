@@ -26,44 +26,48 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install shared-ui
+        working-directory: ggx-insurance-saas-frontend/shared-ui
+        run: npm install --install-strategy=nested --legacy-peer-deps
+
       - name: Build admin-console
-        working-directory: admin-console
+        working-directory: ggx-insurance-saas-frontend/admin-console
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
 
       - name: Build customer-portal
-        working-directory: customer-portal
+        working-directory: ggx-insurance-saas-frontend/customer-portal
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
 
       - name: Build executive-dashboard
-        working-directory: executive-dashboard
+        working-directory: ggx-insurance-saas-frontend/executive-dashboard
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
 
       - name: Build broker-portal
-        working-directory: broker-portal
+        working-directory: ggx-insurance-saas-frontend/broker-portal
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
 
       - name: Build hr-portal
-        working-directory: hr-portal
+        working-directory: ggx-insurance-saas-frontend/hr-portal
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
 
       - name: Build digital-sales-portal
-        working-directory: digital-sales-portal
+        working-directory: ggx-insurance-saas-frontend/digital-sales-portal
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
 
       - name: Build support-center
-        working-directory: support-center
+        working-directory: ggx-insurance-saas-frontend/support-center
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
 
       - name: Assemble pages
         run: |
           mkdir -p _site
-          cp -r admin-console/dist _site/admin-console
-          cp -r customer-portal/dist _site/customer-portal
-          cp -r executive-dashboard/dist _site/executive-dashboard
-          cp -r broker-portal/dist _site/broker-portal
-          cp -r hr-portal/dist _site/hr-portal
-          cp -r digital-sales-portal/dist _site/digital-sales-portal
-          cp -r support-center/dist _site/support-center
+          cp -r ggx-insurance-saas-frontend/admin-console/dist _site/admin-console
+          cp -r ggx-insurance-saas-frontend/customer-portal/dist _site/customer-portal
+          cp -r ggx-insurance-saas-frontend/executive-dashboard/dist _site/executive-dashboard
+          cp -r ggx-insurance-saas-frontend/broker-portal/dist _site/broker-portal
+          cp -r ggx-insurance-saas-frontend/hr-portal/dist _site/hr-portal
+          cp -r ggx-insurance-saas-frontend/digital-sales-portal/dist _site/digital-sales-portal
+          cp -r ggx-insurance-saas-frontend/support-center/dist _site/support-center
 
           cat > _site/index.html << 'EOF'
           <!DOCTYPE html>
