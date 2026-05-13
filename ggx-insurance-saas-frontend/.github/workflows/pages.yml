@@ -26,6 +26,10 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install shared-ui
+        working-directory: shared-ui
+        run: npm install --install-strategy=nested --legacy-peer-deps
+
       - name: Build admin-console
         working-directory: admin-console
         run: npm install --install-strategy=nested --legacy-peer-deps && npm run build
